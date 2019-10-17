@@ -1,7 +1,7 @@
 img = imread('~/Projects/ECS709P-Intro-to-CV/Coursework/images/anton.png');
-% img = imread('/homes/ap328/Datasets/sculptures6k/test/Rodin_Stanford_0250.jpg');
+% img = imread('~/Projects/ECS709P-Intro-to-CV/Dataset/DatasetA/face-1.jpg');
 
 tic;
-rot_img = ICV_rotate(img, 210);
+res_img = ICV_rotate_shear(img, 19, 80);
 toc;
-imshow(rot_img);
+imshow(res_img);
