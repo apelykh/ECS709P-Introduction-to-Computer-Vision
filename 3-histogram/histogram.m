@@ -1,4 +1,4 @@
-video_file = '~/Projects/ECS709P-Intro-to-CV/Dataset/DatasetB.avi';
+video_file = './DatasetB.avi';
 save_figures = 0;
 % folder to save computed histograms
 hist_folder = './histograms';
