@@ -1,78 +1,91 @@
-function ICV_motionEstBM(prev_frame, cur_frame, block_size, search_window, i)
+function [motion_field, predicted_frame] = ICV_motionEstBM(prev_frame, ...
+                                        cur_frame, block_size, window_size)
     arguments
-        prev_frame (:, :, 1) uint8
-        cur_frame (:, :, 1) uint8 {mustBeEqualSize(prev_frame, cur_frame)}
+        prev_frame (:, :) uint8
+        cur_frame (:, :) uint8 {mustBeEqualSize(prev_frame, cur_frame)}
         block_size uint16 {mustBeGreaterThan(block_size, 0), ...
                            mustBeEven(block_size), ...
                            mustEvenlyDivideSize(block_size, cur_frame)}
-        search_window uint16 {mustBeGreaterThan(search_window, block_size)}
-        i
+        window_size uint16 {mustBeGreaterThanOrEqual(window_size, block_size)}
     end
     
-    x_coords = zeros(size(cur_frame, 1), size(cur_frame, 2));
-    y_coords = zeros(size(cur_frame, 1), size(cur_frame, 2));
-    x_len = zeros(size(cur_frame, 1), size(cur_frame, 2));
-    y_len = zeros(size(cur_frame, 1), size(cur_frame, 2));
+    % store the value in a separate variable for convenience
+    bh = block_size / 2;
     
-    for i = 1:block_size:size(prev_frame, 1) - block_size + 1
-        for j = 1:block_size:size(prev_frame, 2) - block_size + 1
-            block = prev_frame(i:i + block_size - 1, j:j + block_size - 1, :);
-%             imshow(block);
+    % populte arrays with x and y coordinates of block centers
+    [xc_coords, yc_coords] = meshgrid(bh:block_size:size(cur_frame, 2) - bh, ...
+                                      bh:block_size:size(cur_frame, 1) - bh);
+    x_len = double(zeros(size(xc_coords)));
+    y_len = double(zeros(size(yc_coords)));
+
+    % iterate through all the block centers
+    for ci = bh:block_size:size(prev_frame, 1) - bh
+        for cj = bh:block_size:size(prev_frame, 2) - bh
+            block = prev_frame((ci - bh + 1):ci + bh, ...
+                               (cj - bh + 1):cj + bh);
+            [match_ci, match_cj] = ICV_matchBlock(block, [ci, cj], ...
+                                                  cur_frame, window_size);
             
-            center_abs_h = i + (block_size / 2);
-            center_abs_w = j + (block_size / 2);
-            y_coords(center_abs_h, center_abs_w) = center_abs_h;
-            x_coords(center_abs_h, center_abs_w) = center_abs_w;
-            
-            [match_i, match_j] = ICV_matchBlock(block, [center_abs_h, center_abs_w], cur_frame, search_window);
-            
-            match_center_abs_h = match_i + (block_size / 2);
-            match_center_abs_w = match_j + (block_size / 2);
-            y_len(center_abs_h, center_abs_w) = match_center_abs_h - center_abs_h;
-            x_len(center_abs_h, center_abs_w) = match_center_abs_w - center_abs_w;
-            
-%             imshow(prev_frame(match_i:match_i + block_size - 1, match_j:match_j + block_size - 1, :));
+            % indices of the curret block
+            block_i = ceil(ci / block_size);
+            block_j = ceil(cj / block_size);
+            % x and y vector length components are corresponding
+            % displacements between current and matched blocks
+            y_len(block_i, block_j) = double(match_ci) - double(ci);
+            x_len(block_i, block_j) = double(match_cj) - double(cj);
         end
     end
     
-    quiver(x_coords, y_coords, x_len, y_len, double(block_size));
-    saveas(gcf, sprintf('motion_%d.png', i));
+    motion_field = [xc_coords, yc_coords, x_len, y_len];
+    predicted_frame = cur_frame;
+
+%     imshow(cur_frame);
+%     hold on
+%     quiver(xc_coords, yc_coords, x_len, y_len, 1);
+%     hold off
 end
 
 
-function [match_i, match_j] = ICV_matchBlock(ref_block, center_abs, frame, window_size)
+function [match_i, match_j] = ICV_matchBlock(ref_block, block_center, frame, window_size)
+    arguments
+        ref_block (:, :) uint8
+        block_center (1, 2) uint16
+        frame (:, :) uint8
+        window_size uint16 {mustBeGreaterThan(window_size, 0)}
+    end
+
     block_size = size(ref_block, 1);
     
     % calculate the coordinates of the search window in the absolute (frame)
     % coordinate system
-    window_from_h = max(center_abs(1) - (window_size / 2), 1);
-    window_to_h = min(center_abs(1) + (window_size / 2), size(frame, 1));
-    window_from_w = max(center_abs(2) - (window_size / 2), 1);
-    window_to_w = min(center_abs(2) + (window_size / 2), size(frame, 2));
+    wh = window_size / 2;
+    window_from_h = max(block_center(1) - wh + 1, 1);
+    window_to_h = min(block_center(1) + wh, size(frame, 1));
+    window_from_w = max(block_center(2) - wh + 1, 1);
+    window_to_w = min(block_center(2) + wh, size(frame, 2));
 
-    search_window = frame(window_from_h:window_to_h, window_from_w:window_to_w, :);
+    search_window = frame(window_from_h:window_to_h, ...
+                          window_from_w:window_to_w);
 
     min_error = 10 ^ 5;
-    matched_block_i = -1;
-    matched_block_j = -1;
+    match_i = -1;
+    match_j = -1;
 
     for i = 1:size(search_window, 1) - block_size + 1
         for j = 1:size(search_window, 2) - block_size + 1
-            block = search_window(i:i + block_size - 1, j:j + block_size - 1, :);
+            block = search_window(i:i + block_size - 1, ...
+                                  j:j + block_size - 1);
             error = ICV_computeError(ref_block, block);
             
             if error < min_error
                 min_error = error;
-                matched_block_i = i;
-                matched_block_j = j;
+                % translate the coordinates of the matched block from window coordinate
+                % system to the absolute (frame) one
+                match_i = i + window_from_h - 2 + (block_size / 2);
+                match_j = j + window_from_w - 2 + (block_size / 2);
             end
         end
     end
-    
-    % translate the coordinates of the matched block from window coordinate
-    % system to the absolute (frame) one
-    match_i = matched_block_i + window_from_h;
-    match_j = matched_block_j + window_from_w;
 end
 
 
@@ -83,7 +96,7 @@ function error = ICV_computeError(ref_block, block)
     end
     
     % calcultaing MSE
-    diff = (ref_block - block) .^ 2;
+    diff = (double(ref_block) - double(block)) .^ 2;
     num_elem = size(ref_block, 1) * size(ref_block, 2);
     error = sum(diff, 'all') / num_elem;
 end
