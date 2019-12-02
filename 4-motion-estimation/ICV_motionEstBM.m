@@ -57,6 +57,7 @@ function predicted_frame = ICV_predictFrame(prev_frame, motion_field, block_size
     bh = block_size / 2;
     predicted_frame = prev_frame;
     
+    % iterate through all the motion vectors
     for block_i = 1:size(motion_field, 2)
         for block_j = 1:size(motion_field, 3)
             x_len = motion_field(3, block_i, block_j);
@@ -68,10 +69,13 @@ function predicted_frame = ICV_predictFrame(prev_frame, motion_field, block_size
             
             cx = motion_field(1, block_i, block_j);
             cy = motion_field(2, block_i, block_j);
+            % take the corresponding block from the previous frame
             block = prev_frame((cy - bh + 1):cy + bh, (cx - bh + 1):cx + bh, :);
             
             t_cx = cx + x_len;
             t_cy = cy + y_len;
+            % displace the block by the lenghts of each component of the
+            % corresponding motion vector
             predicted_frame((t_cy - bh + 1):t_cy + bh, (t_cx - bh + 1):t_cx + bh, :) = block;
         end
     end

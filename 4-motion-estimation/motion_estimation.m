@@ -1,18 +1,19 @@
 video_file = './DatasetC.mpg';
 save_folder = './frames';
-save_figures = 0;
+save_figures = 1;
 block_size = 8;
-search_window = 16;
+search_window = 32;
 % -------------------------------------------------------------------------
 ICV_create_folder(save_folder);
 v = VideoReader(video_file);
+num_frames = ceil(v.FrameRate * v.Duration);
+exec_times = zeros([1, num_frames]);
 prev_frame = NaN;
 
 i = 1;
 while(hasFrame(v))
     cur_frame = readFrame(v);
-%     cur_frame = ICV_rgb2gray(cur_frame, false);
-    
+
     filename = fullfile(save_folder, sprintf('frame%d.png', i));
     if save_figures == 1
         imwrite(cur_frame, filename);
@@ -22,10 +23,8 @@ while(hasFrame(v))
         tic;
         [motion_field, predicted_frame] = ICV_motionEstBM(prev_frame, ...
             cur_frame, block_size, search_window);
-        toc;
-        
-%         filename = fullfile(save_folder, sprintf('frame%d-predicted.png', i));
-%         imwrite(predicted_frame, filename);
+        exec_time = toc;
+        exec_times(i) = exec_time;
 
         imshow(cur_frame);
         hold on
@@ -46,3 +45,8 @@ while(hasFrame(v))
     prev_frame = cur_frame;
     i = i + 1;
 end
+
+% calculating mean value, starting from index 2 because the algorithm is
+% not executed for the frame 1
+disp(fprintf('Average execution time: %f, block size: %d, search window: %d\n', ...
+    mean(exec_times(2:end)), block_size, search_window));
