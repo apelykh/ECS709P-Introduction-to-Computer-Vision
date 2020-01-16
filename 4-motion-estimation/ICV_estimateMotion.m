@@ -1,5 +1,19 @@
-function [motion_field, predicted_frame] = ICV_motionEstBM(prev_frame, ...
+function [motion_field, predicted_frame] = ICV_estimateMotion(prev_frame, ...
                                         cur_frame, block_size, window_size)
+% Full-search block matching algorithm for mostion estimation.
+%
+% :param prev_frame: previous frame of the sequence (grayscale or rgb);
+% :param cur_frame: current frame of the sequence (grayscale or rgb);
+% :param block_size: size of the block for which we extimate motion vector;
+% :param window_size: size of the window on a pervious frame to look for
+%                     matching blocks;
+% :return: 1) motion field of shape (4, frame_heigh / block_size, ...
+%          frame_width / block_size), where (1, :, :), (2, :, :) - x and y
+%          coordinates of motion vector centers,
+%          (3, :, :), (4, :, :) - x and y length components of motion
+%          vectors correspondingly;
+%          2) predicted frame with displaced blocks;
+
     arguments
         prev_frame (:, :, :) uint8
         cur_frame (:, :, :) uint8 {mustBeEqualSize(prev_frame, cur_frame)}
@@ -53,7 +67,8 @@ function [motion_field, predicted_frame] = ICV_motionEstBM(prev_frame, ...
 end
 
 
-function predicted_frame = ICV_predictFrame(prev_frame, motion_field, block_size)
+function predicted_frame = ICV_predictFrame(prev_frame, motion_field, ...
+                                            block_size)
     bh = block_size / 2;
     predicted_frame = prev_frame;
     
@@ -70,19 +85,22 @@ function predicted_frame = ICV_predictFrame(prev_frame, motion_field, block_size
             cx = motion_field(1, block_i, block_j);
             cy = motion_field(2, block_i, block_j);
             % take the corresponding block from the previous frame
-            block = prev_frame((cy - bh + 1):cy + bh, (cx - bh + 1):cx + bh, :);
+            block = prev_frame((cy - bh + 1):cy + bh, ...
+                               (cx - bh + 1):cx + bh, :);
             
             t_cx = cx + x_len;
             t_cy = cy + y_len;
             % displace the block by the lenghts of each component of the
             % corresponding motion vector
-            predicted_frame((t_cy - bh + 1):t_cy + bh, (t_cx - bh + 1):t_cx + bh, :) = block;
+            predicted_frame((t_cy - bh + 1):t_cy + bh, ...
+                            (t_cx - bh + 1):t_cx + bh, :) = block;
         end
     end
 end
 
 
-function [match_i, match_j] = ICV_matchBlock(ref_block, block_center, frame, window_size)
+function [match_i, match_j] = ICV_matchBlock(ref_block, block_center, ...
+                                             frame, window_size)
     arguments
         ref_block (:, :) uint8
         block_center (1, 2) uint16
@@ -115,8 +133,8 @@ function [match_i, match_j] = ICV_matchBlock(ref_block, block_center, frame, win
             
             if error < min_error
                 min_error = error;
-                % translate the coordinates of the matched block from window coordinate
-                % system to the absolute (frame) one
+                % translate the coordinates of the matched block from
+                % window coordinate system to the absolute (frame) one
                 match_i = i + window_from_h - 2 + (block_size / 2);
                 match_j = j + window_from_w - 2 + (block_size / 2);
             end
@@ -138,7 +156,9 @@ function error = ICV_computeError(ref_block, block)
 end
 
 
-% Custom validation function
+% -------------------------------------------------------------------------
+% Custom validation functions
+% -------------------------------------------------------------------------
 function mustBeEqualSize(a, b)
     if ~isequal(size(a), size(b))
         error('Sizes of both frames should be equal')
@@ -146,7 +166,6 @@ function mustBeEqualSize(a, b)
 end
 
 
-% Custom validation function
 function mustBeEven(arg)
     if mod(arg, 2) ~= 0
        error('Block size must be even'); 
@@ -154,8 +173,7 @@ function mustBeEven(arg)
 end
 
 
-% Custom validation function that requires size(b) to be evenly
-% divided by a
+% size(b) should be evenly divided by a
 function mustEvenlyDivideSize(a, b)
     if mod(size(b, 1), a) ~= 0 || mod(size(b, 2), a) ~= 0
         error('Frame size should be divisible by the block size')

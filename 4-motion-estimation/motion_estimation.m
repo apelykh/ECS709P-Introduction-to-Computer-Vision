@@ -1,10 +1,15 @@
-video_file = './DatasetC.mpg';
+% Given two consecutive frames of a video sequence (I_t and I_t+1),
+% implement a full-search block-matching algorithm that uses different
+% block dimensions. The output of the algorithm will be the motion field
+% and the image P_t+1, the prediction of I_t+1.
+
+video_file = '../data/DatasetC.mpg';
 save_folder = './frames';
-save_figures = 1;
+save_figures = 0;
 block_size = 8;
-search_window = 32;
+search_window = 16;
 % -------------------------------------------------------------------------
-ICV_create_folder(save_folder);
+ICV_createFolder(save_folder);
 v = VideoReader(video_file);
 num_frames = ceil(v.FrameRate * v.Duration);
 exec_times = zeros([1, num_frames]);
@@ -21,7 +26,7 @@ while(hasFrame(v))
 
     if ~isnan(prev_frame)
         tic;
-        [motion_field, predicted_frame] = ICV_motionEstBM(prev_frame, ...
+        [motion_field, predicted_frame] = ICV_estimateMotion(prev_frame, ...
             cur_frame, block_size, search_window);
         exec_time = toc;
         exec_times(i) = exec_time;
@@ -33,6 +38,7 @@ while(hasFrame(v))
                0.5, 'color', [1 0 0]);
         hold off
         
+        % weird hack to get the proper frame size (hardcoded)
         frame = getframe(gcf, [92, 63, 352, 288]);
         [frame_with_mf, ~] = frame2im(frame);
         if save_figures == 1
