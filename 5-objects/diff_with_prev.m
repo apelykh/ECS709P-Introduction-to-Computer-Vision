@@ -1,19 +1,23 @@
-video_file = './DatasetC.avi';
+% Perform pixel-by-pixel frame differencing using the previous frame of an
+% image sequence as reference frame. Apply a classification threshold and
+% save the results to disk.
+
+video_file = '../data/DatasetC.avi';
+save_figures = 0;
 frame_folder = './frames';
 diff_folder = './diffs';
-save_figures = 1;
-diff_threshold = 10;
+diff_threshold = 30;
 % -------------------------------------------------------------------------
-ICV_create_folder(frame_folder);
-ICV_create_folder(diff_folder);
+ICV_createFolder(frame_folder);
+ICV_createFolder(diff_folder);
 v = VideoReader(video_file);
-
 prev_frame = NaN;
 i = 1;
+
 while(hasFrame(v))
     frame = ICV_rgb2gray(readFrame(v), false);
     if ~isnan(prev_frame)
-        diff = ICV_frame_difference(prev_frame, frame, diff_threshold);
+        diff = ICV_frameDifference(prev_frame, frame, diff_threshold);
         imshow(diff);
     
         if save_figures == 1
