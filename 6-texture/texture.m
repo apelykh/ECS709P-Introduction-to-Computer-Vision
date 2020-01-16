@@ -1,13 +1,12 @@
-test_image = '/home/apelykh/Projects/ECS709P-Intro-to-CV/Dataset/DatasetA/car-1.jpg';
+test_image = '../data/DatasetA/car-1.jpg';
+% size of the window for local LBP histogram computation
 window_size = 32;
 % -------------------------------------------------------------------------
 
 key_set = {'car', 'face'};
 train_set = containers.Map(key_set, ...
-    {{'/home/apelykh/Projects/ECS709P-Intro-to-CV/Dataset/DatasetA/car-2.jpg', ...
-      '/home/apelykh/Projects/ECS709P-Intro-to-CV/Dataset/DatasetA/car-3.jpg'}, ...
-     {'/home/apelykh/Projects/ECS709P-Intro-to-CV/Dataset/DatasetA/face-2.jpg', ...
-      '/home/apelykh/Projects/ECS709P-Intro-to-CV/Dataset/DatasetA/face-3.jpg'}} ...
+    {{'../data/DatasetA/car-2.jpg', '../data/DatasetA/car-3.jpg'}, ...
+     {'../data/DatasetA/face-2.jpg', '../data/DatasetA/face-3.jpg'}} ...
 );
 
 test_image = ICV_rgb2gray(imread(test_image), false);
@@ -36,7 +35,7 @@ test_LBP_hist = ICV_extractLBPFeatures(test_image, window_size);
 max_intersection = 0;
 pred_class = '';
 for label = avg_histograms.keys
-    intersection = ICV_hist_intersection(test_LBP_hist, avg_histograms(label{1}));
+    intersection = ICV_histIntersection(test_LBP_hist, avg_histograms(label{1}));
     disp(fprintf("%s intersection: %f", label{1}, intersection));
 
     if intersection > max_intersection

@@ -31,6 +31,7 @@ function LBP_hist = ICV_extractLBPFeaturesWindow(window, window_size)
     for i = 2:size(window, 1) - 1
         for j = 2:size(window, 2) - 1
             LBP_string = '';
+            % computing LBP values for 8 pixel neighbours
             val = uint8(window(i - 1, j - 1) > window(i, j));
             LBP_string = strcat(string(val), LBP_string);
             val = uint8(window(i, j - 1) > window(i, j));

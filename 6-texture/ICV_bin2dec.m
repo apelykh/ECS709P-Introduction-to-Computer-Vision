@@ -9,4 +9,3 @@ function dec = ICV_bin2dec(str)
         dec = dec + str2double(ch) * 2 ^ (i - 1);
     end
 end
-
