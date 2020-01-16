@@ -1,10 +1,13 @@
-video_file = './DatasetB.avi';
+% For a given video sequence, calculate the intersection between histograms
+% of consecutive frames. Visualise and present the intersection values.
+
+video_file = '../data/DatasetB.avi';
 save_figures = 0;
 % folder to save histogram intersections
 save_folder = './intersections';
 n_bins = 256;
 % -------------------------------------------------------------------------
-ICV_create_folder(save_folder);
+ICV_createFolder(save_folder);
 
 i = 1;
 v = VideoReader(video_file);
@@ -17,7 +20,7 @@ while(hasFrame(v))
     frame_hists(i, :, :) = hist;
 
     if i > 1
-        [i_r, i_g, i_b] = ICV_hist_intersection(frame_hists(i, :, :), ...
+        [i_r, i_g, i_b] = ICV_histIntersection(frame_hists(i, :, :), ...
                                           frame_hists(i - 1, :, :));
         hist_diffs(i, 1) = i_r;
         hist_diffs(i, 2) = i_g;

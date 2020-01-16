@@ -1,4 +1,7 @@
-video_file = './DatasetB.avi';
+% For a given video sequence, construct and visualise colour histogram of
+% each frame.
+
+video_file = '../data/DatasetB.avi';
 save_figures = 0;
 % folder to save computed histograms
 hist_folder = './histograms';
@@ -6,8 +9,8 @@ hist_folder = './histograms';
 frame_foler = './frames';
 n_bins = 256;
 % -------------------------------------------------------------------------
-ICV_create_folder(hist_folder);
-ICV_create_folder(frame_foler);
+ICV_createFolder(hist_folder);
+ICV_createFolder(frame_foler);
 
 i = 1;
 v = VideoReader(video_file);
@@ -22,9 +25,12 @@ while(hasFrame(v))
         imwrite(frame, filename);
         
         f = figure('visible', 'off');
-        plot(bins, hist(:, 1), 'Red', bins, hist(:, 2), 'Green', bins, hist(:, 3), 'Blue');
+        plot(bins, hist(:, 1), 'Red', bins, ...
+                   hist(:, 2), 'Green', bins, ...
+                   hist(:, 3), 'Blue');
         title(sprintf('Histogram for frame %d', i));
-        filename = fullfile(hist_folder, sprintf('hist%d_frame%d.png', n_bins, i));
+        filename = fullfile(hist_folder, ...
+                            sprintf('hist%d_frame%d.png', n_bins, i));
         saveas(f, filename);
     end
 

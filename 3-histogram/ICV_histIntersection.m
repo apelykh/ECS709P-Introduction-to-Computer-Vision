@@ -1,4 +1,4 @@
-function [i_r, i_g, i_b] = ICV_hist_intersection(hist1, hist2, normalize)
+function [i_r, i_g, i_b] = ICV_histIntersection(hist1, hist2, normalize)
 % Compute an intersection of a pair of RGB histograms.
 %
 % :param hist1: first RGB histogram, a matrix of a shape [n_bins x 3] where
@@ -34,7 +34,9 @@ function [i_r, i_g, i_b] = ICV_hist_intersection(hist1, hist2, normalize)
 end
 
 
-% Custom validation function
+% -------------------------------------------------------------------------
+% Custom validation functions
+% -------------------------------------------------------------------------
 function mustBeEqualSize(a, b)
     if ~isequal(size(a),size(b))
         error('Size of first input must equal size of second input')
@@ -42,7 +44,6 @@ function mustBeEqualSize(a, b)
 end
 
 
-% Custom validation function
 function mustBeZeroOrOne(arg)
     if arg ~= 1 && arg ~= 0
         error('Order should be either 0 or 1');
