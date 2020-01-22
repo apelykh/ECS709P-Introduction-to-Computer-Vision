@@ -1,5 +1,4 @@
-% Change value to use different image
-target_image = './face-1.jpg';
+target_image = '../data/DatasetA/face-1.jpg';
 % -------------------------------------------------------------------------
 img = imread(target_image);
 img = ICV_rgb2gray(img);

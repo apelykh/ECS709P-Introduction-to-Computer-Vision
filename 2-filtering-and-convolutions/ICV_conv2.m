@@ -32,7 +32,9 @@ function padded_arr = ICV_padarray(arr, amount, value)
 end
 
 
-% Custom validation function
+% -------------------------------------------------------------------------
+% Custom validation functions
+% -------------------------------------------------------------------------
 function mustBeSquare(arg)
     % assume that the kernel is always square
     if size(arg, 1) ~= size(arg, 2)
@@ -41,7 +43,6 @@ function mustBeSquare(arg)
 end
 
 
-% Custom validation function
 function sizeMustBeOdd(arg)
     if mod(size(arg, 1), 2) == 0
        error('Kernel should have an odd size.'); 
@@ -49,7 +50,6 @@ function sizeMustBeOdd(arg)
 end
 
 
-% Custom validation function
 function sizeMustBeLessThanSize(arg1, arg2)
     if max(size(arg1)) > min(size(arg2))
         error('Kernel should be smaller than the image.');
